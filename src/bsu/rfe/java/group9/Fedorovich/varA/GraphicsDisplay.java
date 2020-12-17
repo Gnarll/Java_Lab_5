@@ -352,7 +352,104 @@ public class GraphicsDisplay extends JPanel {
         }
 
     }
-   
+    private void paintGrid(Graphics2D canvas) {
+        canvas.setStroke(this.gridStroke);
+        canvas.setColor(Color.GRAY);
+        double pos = this.viewport[0][0];
+
+        double step;
+        for(step = (this.viewport[1][0] - this.viewport[0][0]) / 10.0D; pos < this.viewport[1][0]; pos += step) {
+            canvas.draw(new java.awt.geom.Line2D.Double(this.translateXYtoPoint(pos, this.viewport[0][1]), this.translateXYtoPoint(pos, this.viewport[1][1])));
+        }
+
+        canvas.draw(new java.awt.geom.Line2D.Double(this.translateXYtoPoint(this.viewport[1][0], this.viewport[0][1]), this.translateXYtoPoint(this.viewport[1][0], this.viewport[1][1])));
+        pos = this.viewport[1][1];
+
+        for(step = (this.viewport[0][1] - this.viewport[1][1]) / 10.0D; pos < this.viewport[0][1]; pos += step) {
+            canvas.draw(new java.awt.geom.Line2D.Double(this.translateXYtoPoint(this.viewport[0][0], pos), this.translateXYtoPoint(this.viewport[1][0], pos)));
+        }
+
+        canvas.draw(new java.awt.geom.Line2D.Double(this.translateXYtoPoint(this.viewport[0][0], this.viewport[0][1]), this.translateXYtoPoint(this.viewport[1][0], this.viewport[0][1])));
+    }
+
+
+    // Метод, обеспечивающий отображение осей координат
+    protected void paintAxis(Graphics2D canvas) {
+// Установить особое начертание для осей
+        canvas.setStroke(axisStroke);
+// Оси рисуются чѐрным цветом
+        canvas.setColor(Color.BLACK);
+// Стрелки заливаются чѐрным цветом
+        canvas.setPaint(Color.BLACK);
+// Подписи к координатным осям делаются специальным шрифтом
+        canvas.setFont(axisFont);
+// Создать объект контекста отображения текста - для получения характеристик устройства (экрана)
+        FontRenderContext context = canvas.getFontRenderContext();
+// Определить, должна ли быть видна ось Y на графике
+        if (minX <= 0.0 && maxX >= 0.0) {
+// Она должна быть видна, если левая граница показываемой области (minX) <= 0.0,
+// а правая (maxX) >= 0.0
+// Сама ось - это линия между точками (0, maxY) и (0, minY)
+            canvas.draw(new Line2D.Double(translateXYtoPoint(0, maxY),
+                    translateXYtoPoint(0, minY)));
+// Стрелка оси Y
+            GeneralPath arrow = new GeneralPath();
+// Установить начальную точку ломаной точно на верхний конец оси Y
+            Point2D.Double lineEnd = translateXYtoPoint(0, maxY);
+            arrow.moveTo(lineEnd.getX(), lineEnd.getY());
+// Вести левый "скат" стрелки в точку с относительными координатами (5,20)
+            arrow.lineTo(arrow.getCurrentPoint().getX() + 5,
+                    arrow.getCurrentPoint().getY() + 20);
+// Вести нижнюю часть стрелки в точку с относительными координатами (-10, 0)
+            arrow.lineTo(arrow.getCurrentPoint().getX() - 10,
+                    arrow.getCurrentPoint().getY());
+// Замкнуть треугольник стрелки
+            arrow.closePath();
+            canvas.draw(arrow); // Нарисовать стрелку
+            canvas.fill(arrow); // Закрасить стрелку
+// Нарисовать подпись к оси Y
+// Определить, сколько места понадобится для надписи "y"
+            Rectangle2D bounds = axisFont.getStringBounds("y", context);
+            Point2D.Double labelPos = translateXYtoPoint(0, maxY);
+// Вывести надпись в точке с вычисленными координатами
+            canvas.drawString("y", (float) labelPos.getX() + 10,
+                    (float) (labelPos.getY() - bounds.getY()));
+        }
+// Определить, должна ли быть видна ось X на графике
+        if (minY <= 0.0 && maxY >= 0.0) {
+// Она должна быть видна, если верхняя граница показываемой области (maxX) >= 0.0,
+// а нижняя (minY) <= 0.0
+            canvas.draw(new Line2D.Double(translateXYtoPoint(minX, 0),
+                    translateXYtoPoint(maxX, 0)));
+// Стрелка оси X
+            GeneralPath arrow = new GeneralPath();
+// Установить начальную точку ломаной точно на правый конец оси X
+            Point2D.Double lineEnd = translateXYtoPoint(maxX, 0);
+            arrow.moveTo(lineEnd.getX(), lineEnd.getY());
+// Вести верхний "скат" стрелки в точку с относительными координатами (-20,-5)
+            arrow.lineTo(arrow.getCurrentPoint().getX() - 20,
+                    arrow.getCurrentPoint().getY() - 5);
+// Вести левую часть стрелки в точку с относительными координатами (0, 10)
+            arrow.lineTo(arrow.getCurrentPoint().getX(),
+                    arrow.getCurrentPoint().getY() + 10);
+// Замкнуть треугольник стрелки
+            arrow.closePath();
+            canvas.draw(arrow); // Нарисовать стрелку
+            canvas.fill(arrow); // Закрасить стрелку
+// Нарисовать подпись к оси X
+// Определить, сколько места понадобится для надписи "x"
+            Rectangle2D bounds = axisFont.getStringBounds("x", context);
+            Point2D.Double labelPos = translateXYtoPoint(maxX, 0);
+// Вывести надпись в точке с вычисленными координатами
+            canvas.drawString("x", (float) (labelPos.getX() -
+                    bounds.getWidth() - 10), (float) (labelPos.getY() + bounds.getY()));
+
+
+        }
+
+
+    }
+    
     protected java.awt.geom.Point2D.Double translateXYtoPoint(double x, double y) {
         double deltaX = x - this.viewport[0][0];
         double deltaY = this.viewport[0][1] - y;
